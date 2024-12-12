@@ -1,0 +1,208 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        header {
+            background-color: #a59393; /* Подходит под стиль вашего сайта */
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .cart-container {
+            max-width: 1100px;
+            margin: 20px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th, table td {
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        table th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .product-info img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .quantity-input {
+            width: 60px;
+            text-align: center;
+        }
+
+        .update-quantity-btn {
+            padding: 5px 10px;
+            margin-left: 5px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .update-quantity-btn:hover {
+            background-color: #218838;
+        }
+
+        .total {
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: right;
+        }
+
+        .checkout-btn {
+            display: block;
+            margin: 20px 0;
+            padding: 10px 20px;
+            text-align: center;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .checkout-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .coupon-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .coupon-container input {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .apply-coupon-btn {
+            padding: 10px 20px;
+            background-color: #ffc107;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .apply-coupon-btn:hover {
+            background-color: #e0a800;
+        }
+
+        .message {
+            margin: 10px 0;
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Ваша корзина</h1>
+        <a href="{% url 'home' %}" class="btn">← Вернуться к покупкам</a>
+    </header>
+    <div class="cart-container">
+        {% if messages %}
+        <div class="message">
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if cart_items %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Количество</th>
+                    <th>Цена за единицу</th>
+                    <th>Итого</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td class="product-info">
+                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                        {{ item.product.name }}
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'update_cart_quantity' %}" class="update-quantity-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ item.product.id }}">
+                            <input type="number" name="quantity" class="quantity-input" value="{{ item.quantity }}" min="1">
+                            <button type="submit" class="update-quantity-btn">Обновить</button>
+                        </form>
+                    </td>
+                    <td>{{ item.product.price|floatformat:2 }} руб.</td>
+                    <td>{{ item.quantity|floatformat:2|multiply:item.product.price }} руб.</td>
+                    <td>
+                        <form method="post" action="{% url 'remove_from_cart' item.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="actions-btn">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="coupon-container">
+            <input type="text" name="coupon_code" placeholder="Введите код купона">
+            <button class="apply-coupon-btn">Применить</button>
+        </div>
+        <p class="total">Общая стоимость: {{ total_price|floatformat:2 }} руб.</p>
+        <a href="{% url 'checkout' %}" class="checkout-btn">Перейти к оплате</a>
+        {% else %}
+        <p>Ваша корзина пуста. <a href="{% url 'home' %}">Перейти к покупкам</a>.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

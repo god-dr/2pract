@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оформление заказа</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+</head>
+<body>
+    <h1>Оформление заказа</h1>
+    <form action="{% url 'checkout' %}" method="POST">
+        {% csrf_token %}
+        <label for="address">Адрес доставки:</label>
+        <textarea name="address" required></textarea>
+
+        <label for="phone">Телефон:</label>
+        <input type="text" name="phone" required>
+
+        <h2>Выберите способ оплаты:</h2>
+        <label>
+            <input type="radio" name="payment_method" value="bank_transfer" required>
+            Банковский перевод
+        </label>
+        <label>
+            <input type="radio" name="payment_method" value="cash_on_delivery" required>
+            Наложенный платеж
+        </label>
+
+        <button type="submit">Подтвердить</button>
+    </form>
+</body>
+</html>

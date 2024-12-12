@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дополнительная информация о товаре</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            background-color: #a59393;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header img {
+            width: 50px;
+            height: auto;
+            cursor: pointer;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #fff;
+            margin: 0 0 0 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-details {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .product-image {
+            flex: 1;
+        }
+
+        .product-image img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .product-thumbnails {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .product-thumbnails img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        .product-thumbnails img:hover,
+        .product-thumbnails img.active {
+            border-color: #a59393;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-info h1 {
+            font-size: 28px;
+            color: #333;
+        }
+
+        .product-info .price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #a59393;
+        }
+
+        .product-info .description {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .add-to-cart {
+            margin-top: 20px;
+        }
+
+        .add-to-cart button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #a59393;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-to-cart button:hover {
+            background-color: #8c7c7c;
+        }
+
+        .reviews {
+            margin-top: 30px;
+        }
+
+        .reviews h2 {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .review {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .review:last-child {
+            border-bottom: none;
+        }
+
+        .review .author {
+            font-weight: bold;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .review .content {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .add-review {
+            margin-top: 30px;
+        }
+
+        .add-review textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        .add-review button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #a59393;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-review button:hover {
+            background-color: #8c7c7c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Логотип и заголовок -->
+    <div class="header">
+        <a href="{% url 'home' %}">
+            <img src="{% static 'images/logo.png' %}" alt="Логотип">
+        </a>
+        <h1>Rezinok.net</h1>
+    </div>
+
+    <div class="container">
+        <!-- Основная информация о товаре -->
+        <div class="product-details">
+            <div class="product-image">
+                <img id="main-image" src="{{ product.image.url }}" alt="{{ product.name }}">
+                <div class="product-thumbnails">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="active" onclick="changeImage('{{ product.image.url }}')">
+                    {% for photo in product.additional_photos.all %}
+                    <img src="{{ photo.url }}" alt="Дополнительное фото" onclick="changeImage('{{ photo.url }}')">
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="product-info">
+                <h1>{{ product.name }}</h1>
+                <p class="price">{{ product.price }} руб.</p>
+                <p class="description">{{ product.description }}</p>
+                <div class="add-to-cart">
+                    <form method="POST" action="{% url 'add_to_cart' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="product_id" value="{{ product.id }}">
+                        <button type="submit">Добавить в корзину</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Отзывы -->
+        <div class="reviews">
+            <h2>Отзывы</h2>
+            {% for review in product.reviews.all %}
+            <div class="review">
+                <p class="author">{{ review.user.username }}:</p>
+                <p class="content">{{ review.content }}</p>
+            </div>
+            {% empty %}
+            <p>Отзывов пока нет. Оставьте первым!</p>
+            {% endfor %}
+        </div>
+
+        <!-- Добавить отзыв -->
+        <div class="add-review">
+            <h3>Добавить отзыв</h3>
+            <form method="POST" action="{% url 'add_review' product.id %}">
+                {% csrf_token %}
+                <textarea name="review_content" rows="5" placeholder="Напишите ваш отзыв..." required></textarea>
+                <button type="submit">Отправить</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function changeImage(url) {
+            const mainImage = document.getElementById('main-image');
+            const thumbnails = document.querySelectorAll('.product-thumbnails img');
+            mainImage.src = url;
+
+            thumbnails.forEach(thumbnail => {
+                thumbnail.classList.remove('active');
+            });
+
+            const activeThumbnail = Array.from(thumbnails).find(img => img.src.includes(url));
+            if (activeThumbnail) {
+                activeThumbnail.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
